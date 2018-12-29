@@ -14,6 +14,7 @@ class MyDumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):
         return super(MyDumper, self).increase_indent(flow, False)
 
+
 content_regex = re.compile(r'---([\s\S]*?)---([\s\S]*)')
 
 
@@ -32,7 +33,7 @@ def convert_front_matter(front_data, post_date, url):
 
 
 replace_regex_list = [
-#    (re.compile(r'^```(.*?)\n(.*?)\n```', re.DOTALL), r'{{< highlight \1 >}}\n\2\n{{< /highlight >}}'),
+    # (re.compile(r'^```(.*?)\n(.*?)\n```', re.DOTALL), r'{{< highlight \1 >}}\n\2\n{{< /highlight >}}'),
     (re.compile(r'<!--\smore\s-->'), '<!--more-->'),
     (re.compile(r'\{%\sraw\s%\}(.*)\{%\sendraw\s%\}'), r'\1')
 ]
@@ -42,7 +43,6 @@ def convert_body_text(body_text):
     result = body_text
     for regex, replace_with in replace_regex_list:
         result = regex.sub(replace_with, result)
-
     return result
 
 
@@ -131,6 +131,7 @@ def convert(src_dir, out_dir):
 
     print '--------\n%d file converted! %s' % (count, 'Error count: %d' % error if error > 0 else 'Congratulation!!!')
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert Jekyll blog to GoHugo')
     parser.add_argument('src_dir', help='jekyll post dir')
@@ -138,4 +139,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     convert(os.path.abspath(args.src_dir), os.path.abspath(args.out_dir))
-
