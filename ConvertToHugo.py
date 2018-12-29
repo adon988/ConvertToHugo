@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # coding:utf-8
 
+import argparse
+from datetime import datetime
 import os
 import re
-import yaml
-from datetime import datetime
-import argparse
 
+import yaml
 __author__ = 'coderzh'
 
 
