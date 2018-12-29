@@ -8,6 +8,15 @@ import yaml
 __author__ = 'coderzh'
 
 
+def represent_ordereddict(dumper, data):
+    value = []
+    for item_key, item_value in data.items():
+        node_key = dumper.represent_data(item_key)
+        node_value = dumper.represent_data(item_value)
+        value.append((node_key, node_value))
+    return yaml.nodes.MappingNode('tag:yaml.org,2002:map', value)
+
+
 class MyDumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):
         return super().increase_indent(flow, False)
@@ -129,6 +138,7 @@ def convert(src_dir, out_dir):
 
 
 if __name__ == '__main__':
+    yaml.add_representer(dict, represent_ordereddict)
     parser = argparse.ArgumentParser(description='Convert Jekyll blog to GoHugo')
     parser.add_argument('src_dir', help='jekyll post dir')
     parser.add_argument('out_dir', help='hugo root path')
