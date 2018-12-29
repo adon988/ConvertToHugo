@@ -85,7 +85,7 @@ def convert_post(file_path, out_dir):
             break
         head += l
 
-    front_data = yaml.load(head.decode())
+    front_data = yaml.safe_load(head.decode())
     if not front_data:
         print('Error load yaml: %s' % file_path)
         return False
