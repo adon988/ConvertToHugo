@@ -22,9 +22,6 @@ class MyDumper(yaml.Dumper):
         return super().increase_indent(flow, False)
 
 
-content_regex = re.compile(r'---([\s\S]*?)---([\s\S]*)')
-
-
 def convert_front_matter(front_data, post_date, url):
     front_data['url'] = url
 
@@ -40,28 +37,25 @@ def convert_front_matter(front_data, post_date, url):
 
 
 replace_regex_list = [
-    # (re.compile(r'^```(.*?)\n(.*?)\n```', re.DOTALL), r'{{< highlight \1 >}}\n\2\n{{< /highlight >}}'),
-    (re.compile(r'<!--\smore\s-->'), '<!--more-->'),
-    (re.compile(r'\{%\sraw\s%\}(.*)\{%\sendraw\s%\}'), r'\1')
+    # (re.compile(br'^```(.*?)\n(.*?)\n```', re.DOTALL), br'{{< highlight \1 >}}\n\2\n{{< /highlight >}}'),
+    (re.compile(br'<!--\smore\s-->'),  b'<!--more-->'),
+    (re.compile(br'\{%\sraw\s%\}(.*)\{%\sendraw\s%\}'), br'\1')
 ]
 
 
-def convert_body_text(body_text):
-    result = body_text
+def convert_body(body):
+    result = body
     for regex, replace_with in replace_regex_list:
         result = regex.sub(replace_with, result)
     return result
 
 
-def write_out_file(front_data, body_text, out_file_path):
-    out_lines = ['---']
-    front_string = yaml.dump(front_data, width=1000, default_flow_style=True, allow_unicode=True, Dumper=MyDumper)
-    out_lines.extend(front_string.splitlines())
-    out_lines.append('---')
-    out_lines.extend(body_text.splitlines())
-
-    with open(out_file_path, 'w') as f:
-        f.write('\n'.join(out_lines))
+def write_out_file(front_data, body, out_file_path):
+    with open(out_file_path, 'wb') as f:
+        f.write(b'---\n')
+        yaml.dump(front_data, f, width=1000, default_flow_style=True, allow_unicode=True, Dumper=MyDumper, encoding='utf8')
+        f.write(b'---\n')
+        f.write(body)
 
 
 filename_regex = re.compile(r'(\d+-\d+-\d+)-(.*)')
@@ -81,16 +75,17 @@ def convert_post(file_path, out_dir):
     filename = os.path.basename(file_path)
     post_date, url = parse_from_filename(filename)
 
-    content = ''
-    with open(file_path) as f:
-        content = f.read()
+    with open(file_path, 'rb') as f:
+        content = f.readlines()
 
-    m = content_regex.match(content)
-    if not m:
-        print('Error match content: %s' % file_path)
-        return False
+    head = b''
+    for i, l in enumerate(content[1:], 1):
+        if l.strip() == b'---':
+            bodies = content[i + 1:]
+            break
+        head += l
 
-    front_data = yaml.load(m.group(1))
+    front_data = yaml.load(head.decode())
     if not front_data:
         print('Error load yaml: %s' % file_path)
         return False
@@ -106,8 +101,8 @@ def convert_post(file_path, out_dir):
     out_file_path = os.path.join(out_dir, filename)
 
     convert_front_matter(front_data, post_date, url)
-    body_text = convert_body_text(m.group(2))
-    write_out_file(front_data, body_text, out_file_path)
+    body = convert_body(b''.join(bodies))
+    write_out_file(front_data, body, out_file_path)
 
     return True
 
