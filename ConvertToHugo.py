@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# coding:utf-8
-
+#!/usr/bin/env python3.6
 import argparse
 from datetime import datetime
 import os
@@ -12,7 +10,7 @@ __author__ = 'coderzh'
 
 class MyDumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):
-        return super(MyDumper, self).increase_indent(flow, False)
+        return super().increase_indent(flow, False)
 
 
 content_regex = re.compile(r'---([\s\S]*?)---([\s\S]*)')
@@ -24,7 +22,7 @@ def convert_front_matter(front_data, post_date, url):
     del front_data['layout']
 
     for tag in ['tags', 'categories', 'category']:
-        if tag in front_data and isinstance(front_data[tag], basestring):
+        if tag in front_data and isinstance(front_data[tag], str):
             front_data[tag] = front_data[tag].split(' ')
 
     if 'category' in front_data:
@@ -48,7 +46,7 @@ def convert_body_text(body_text):
 
 def write_out_file(front_data, body_text, out_file_path):
     out_lines = ['---']
-    front_string = yaml.dump(front_data, width=1000, default_flow_style=False, allow_unicode=True, Dumper=MyDumper)
+    front_string = yaml.dump(front_data, width=1000, default_flow_style=True, allow_unicode=True, Dumper=MyDumper)
     out_lines.extend(front_string.splitlines())
     out_lines.append('---')
     out_lines.extend(body_text.splitlines())
@@ -75,17 +73,17 @@ def convert_post(file_path, out_dir):
     post_date, url = parse_from_filename(filename)
 
     content = ''
-    with open(file_path, 'r') as f:
+    with open(file_path) as f:
         content = f.read()
 
     m = content_regex.match(content)
     if not m:
-        print 'Error match content: %s' % file_path
+        print('Error match content: %s' % file_path)
         return False
 
     front_data = yaml.load(m.group(1))
     if not front_data:
-        print 'Error load yaml: %s' % file_path
+        print('Error load yaml: %s' % file_path)
         return False
 
     '''
@@ -95,9 +93,6 @@ def convert_post(file_path, out_dir):
         else:
             out_dir = os.path.join(out_dir, front_data['layout'])
     '''
-
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
 
     out_file_path = os.path.join(out_dir, filename)
 
@@ -109,6 +104,7 @@ def convert_post(file_path, out_dir):
 
 
 def convert(src_dir, out_dir):
+    os.makedirs(out_dir, exist_ok=True)
     count = 0
     error = 0
     for root, dirs, files in os.walk(src_dir):
@@ -121,15 +117,15 @@ def convert(src_dir, out_dir):
                 rel_path = os.path.relpath(os.path.dirname(file_path), common_prefix)
                 real_out_dir = os.path.join(out_dir, rel_path)
                 if convert_post(file_path, real_out_dir):
-                    print 'Converted: %s' % file_path
+                    print('Converted: %s' % file_path)
                     count += 1
                 else:
                     error += 1
             except Exception as e:
                 error += 1
-                print 'Error convert: %s \nException: %s' % (file_path, e)
+                print('Error convert: %s \nException: %s' % (file_path, e))
 
-    print '--------\n%d file converted! %s' % (count, 'Error count: %d' % error if error > 0 else 'Congratulation!!!')
+    print('--------\n%d file converted! %s' % (count, 'Error count: %d' % error if error > 0 else 'Congratulation!!!'))
 
 
 if __name__ == '__main__':
