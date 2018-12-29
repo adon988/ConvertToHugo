@@ -6,6 +6,8 @@ import re
 from typing import Any, Dict
 
 import yaml
+
+import logdown
 __author__ = 'coderzh'
 
 
@@ -105,7 +107,9 @@ def convert_post(file_path, out_dir):
     out_file_path = os.path.join(out_dir, filename)
 
     convert_front_matter(front_data, post_date, url)
+    front_data = logdown.convert_front_matter(front_data)
     body = convert_body(b''.join(bodies))
+    body = logdown.convert_body(body)
     write_out_file(front_data, body, out_file_path)
 
     return True
