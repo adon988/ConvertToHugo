@@ -3,6 +3,7 @@ import argparse
 from datetime import datetime
 import os
 import re
+from typing import Any, Dict
 
 import yaml
 __author__ = 'coderzh'
@@ -23,6 +24,7 @@ class MyDumper(yaml.Dumper):
 
 
 def convert_front_matter(front_data, post_date, url):
+    # type: (Dict[str, Any], datetime, str) -> None
     front_data['url'] = url
 
     del front_data['layout']
@@ -44,6 +46,7 @@ replace_regex_list = [
 
 
 def convert_body(body):
+    # type: (bytes) -> bytes
     result = body
     for regex, replace_with in replace_regex_list:
         result = regex.sub(replace_with, result)
@@ -51,6 +54,7 @@ def convert_body(body):
 
 
 def write_out_file(front_data, body, out_file_path):
+    # type: (Dict[str, Any], bytes, str) -> None
     with open(out_file_path, 'wb') as f:
         f.write(b'---\n')
         yaml.dump(front_data, f, width=1000, default_flow_style=True, allow_unicode=True, Dumper=MyDumper, encoding='utf8')
